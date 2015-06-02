@@ -1,0 +1,91 @@
+#!/bin/bash
+
+#MSR LIVE SCAN STATUS VIEWER - v2.1 - Brought to you by jazz
+#Input validation improved. Now, relative PATHs can be used.
+#"Viewer before scans" bug resolved.
+#Potential brainhurt resolved ;)  - COMPLETED before scan`s filename
+ 
+#v2.0 comments
+#Input validation may be improved to admit '_' and '-'. Directory's file names may need validation, idk. 
+#Viewer can be launched BEFORE the scan begins. Enter key should be pressed after the last scan is launched.
+#Display insufficience still a problem. Should be improved.
+#Output extension and completion signature can be easily changed to match other scanners patterns (e. Nikto)
+#Verbosity of tools can be seized to present the user with completion percentages of on-going scans (a future version could implement this. Or not)
+#This tool should be incorporated into in-PATH folders
+
+USAGE1="USAGE: ./msrlive [PATH]"
+USAGE2="PATH [A-Za-z09/_]"
+
+if [ "$#" -ne 1 ]
+ then
+ echo "$USAGE1"
+ echo "$USAGE2"
+ exit 1
+fi
+
+validate="$(echo $1 | sed -e 's/[^A-Za-z0-9/_]*//g')"
+if [ "$validate" != "$1" ]; then 
+ echo "$USAGE1"
+ echo "$USAGE2"
+ exit 1
+fi
+
+TOTAL=0
+FIN=0
+
+clear
+echo "MSRLIVE SCAN STATUS VIEWER v2.1 starting - Press Enter when the last scan has been launched... "
+read key
+echo "Gathering Information..." #No information is in fact gathered at this point. Deal with it
+##########################
+# Look for nmap outputs
+LIST=$(ls $1|grep "\.nmap")
+###########################
+
+##########################
+#Refreshing rate
+while sleep 5
+##########################
+do
+ clear
+ echo "MSRLIVE SCAN SATUS VIEWER v2.1 - A K.I.S.S bash solution to view your nmap scans completion status"
+ echo "Brought to you by jazz"
+ echo " "
+# if [ "$READY" == 0 ]; then
+#  echo "Press Return when ready..."
+#  read key
+#  let "READY=READY+1"  
+# fi  
+ for word in $LIST
+ do
+  let "TOTAL=TOTAL+1"
+########################################
+# Look for scan complete signature 
+  KEY=$(cat "$1/$word"|grep "Nmap done")
+########################################
+  test -n "$KEY" && ( echo "COMPLETED: $word" )
+  if [ -n "$KEY" ]; then 
+   let "FIN=FIN+1"
+  fi
+ done
+ echo " "
+ echo "COMPLETED SCANS: $FIN | TOTAL SCANS: $TOTAL"
+ if [ "$TOTAL" == "$FIN" ]; then 
+  exit 1
+ fi 
+ FIN=0
+ TOTAL=0 
+done
+
+#LEGACY DOCUMENTATION
+#SCAN STATUS VIEWER - v1.0 - Brought to you by jazz
+#No input validation performed (to implement at v2.0)
+#No auto stopping performed (to implement at v2.0)
+#Display insufficience not resolved (to implement at v2.0)
+#This results in a mere "conceptual and primitive" version of the app
+#jazz won't improve this algorithm anymore. A reformulation will be performed.
+
+#v0.1 Comments
+#OK, cron implementation is still missing, but i think it will be
+#kind of straightforward. The final version should be reformulated to
+#just show the finished scans, i think.
